@@ -51,7 +51,7 @@ class Variable(Macro):
         self.variable = variable
 
     def render(self, template_data: TemplateData) -> str:
-        result = template_data.resolve_variable(self.variable)
+        result = template_data.resolve(self.variable)
         return str(result)
 
     def __repr__(self):
@@ -66,7 +66,7 @@ class Foreach(Macro):
         self.body = []
 
     def render(self, template_data: TemplateData) -> str:
-        resolved_source = template_data.resolve_variable(self.source)
+        resolved_source = template_data.resolve(self.source)
 
         bodies = []
         for value in resolved_source:
@@ -86,7 +86,7 @@ class StaticResource(Macro):
         self.file = file
 
     def render(self, template_data: TemplateData) -> str:
-        return ('../' * len(template_data.path)) + str(template_data.resolve_variable(self.file))
+        return ('../' * len(template_data.path)) + str(template_data.resolve(self.file))
 
     def __repr__(self):
         return 'StaticResource[' + self.file + ']'
@@ -100,7 +100,7 @@ class If(Macro):
         self.body = []
 
     def render(self, template_data: TemplateData) -> str:
-        resolved = template_data.resolve_variable(self.condition)
+        resolved = template_data.resolve(self.condition)
 
         if self.binding:
             local_data = deepcopy(template_data)
@@ -116,7 +116,7 @@ class If(Macro):
             body_true = self.body
             body_false = []
 
-        if self.condition[0] != '$' or resolved:
+        if resolved:
             body = body_true
         else:
             body = body_false
@@ -134,10 +134,7 @@ class Eval(Macro):
         self.expression = match.groups()[0]
 
     def render(self, template_data: TemplateData) -> str:
-        expr = self.expression
-        for variable in re.findall('\$[a-zA-Z()\->$]+', expr):
-            expr = expr.replace(variable, str(template_data.resolve_variable(variable)))
-        return str(eval(expr))
+        return str(template_data.evaluate(self.expression))
 
     def __repr__(self):
         return 'eval(' + self.expression + ')'
@@ -153,7 +150,7 @@ class Template(Macro):
     def render(self, template_data: TemplateData) -> str:
         resolved_data = {}
         for key in self.data:
-            resolved_data[key] = template_data.resolve_variable(self.data[key])
+            resolved_data[key] = template_data.resolve(self.data[key])
 
         local_data = deepcopy(template_data)
         local_data.data.update(resolved_data)

@@ -121,6 +121,18 @@ class ParserTest(unittest.TestCase):
                expected='hello',
                data={'foo': {'bar': {'baz': 'hello'}}})
 
+    def test_if_eval_true(self):
+        helper(self,
+               template='{{if:condition=eval($foo == $bar)}}true{{else}}false{{end}}',
+               expected='true',
+               data={'foo': 123, 'bar': 123})
+
+    def test_if_eval_false(self):
+        helper(self,
+               template='{{if:condition=eval($foo == $bar)}}true{{else}}false{{end}}',
+               expected='false',
+               data={'foo': 123, 'bar': 456})
+
     def test_eval_no_vars(self):
         helper(self,
                template='abc {{eval(2 + 2)}} xyz',
