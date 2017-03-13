@@ -154,7 +154,7 @@ class Template(Macro):
 
         local_data = deepcopy(template_data)
         local_data.data.update(resolved_data)
-        with open(self.file) as stream:
+        with open(path.join(template_data.root, self.file)) as stream:
             contents = stream.read()
             return self.evaluate(contents, local_data)
 
